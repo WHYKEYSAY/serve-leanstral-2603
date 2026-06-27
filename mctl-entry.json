@@ -1,0 +1,19 @@
+{
+  "name": "leanstral-2603",
+  "backend": "llamacpp",
+  "manager": "direct",
+  "extra_args": [
+    "-fit",
+    "on",
+    "-fa",
+    "on",
+    "--cache-type-k",
+    "q8_0",
+    "--cache-type-v",
+    "q8_0",
+    "--jinja",
+    "--chat-template-file",
+    "chat_template.jinja"
+  ],
+  "note": "Leanstral-2603 (119B-A6B, MLA)"
+}

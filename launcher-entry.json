@@ -1,7 +1,6 @@
 {
   "name": "leanstral-2603",
   "backend": "llamacpp",
-  "manager": "direct",
   "extra_args": [
     "-fit",
     "on",

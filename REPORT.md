@@ -1,4 +1,4 @@
-# leanstral-2603 (119B-A6B, deepseek2/MLA) — team-urgent (Mohan / Lean 4)
+# leanstral-2603 (119B-A6B, deepseek2/MLA) — Lean 4 theorem-proving MoE
 
 **From unusable to usable: 0.94 → 22.4 tok/s (23.8×)** via `-fit on`. Mistral's Lean-4 theorem-proving MoE.
 The win was entirely **config** — the hardware was never the limit. **Now 7/7 clean.**
@@ -31,7 +31,7 @@ The win was entirely **config** — the hardware was never the limit. **Now 7/7 
 | Placement | **`-fit on`** auto: all active params (attn/dense/shared-expert/KV) on GPU, routed experts spill to CPU |
 | VRAM | 5090 31.5 GB + 5080 13.9 GB = **45.4 GB on GPU**; ~27 GB cold experts on CPU RAM |
 | KV / ctx / fa | `--cache-type-k/v q8_0` · 8192 · `-fa on` |
-| Port | :8005 via `mctl switch leanstral` |
+| Port | :8005 |
 
 ## Tuning-research (sources + chosen config + why)
 Multi-agent deep-research (95 agents, adversarially verified; raw in `leanstral-deep-research-raw.json`).
@@ -68,9 +68,9 @@ faster MLA+MoE CPU kernels) is blocked — see Failures.
 
 ## Verdict
 ✅ **USABLE for the team at 22.4 tok/s, 7/7 clean** (mainline `-fit on`, coherent Lean-4, 23.8× the broken baseline).
-Servable on-demand via `mctl switch leanstral` on :8005. **To reach ~34:** ik_llama requant (deferred) or more RAM
-bandwidth. **Disk: KEPT** (team-urgent + one of the two keepers). **§E: complete — the 7-workload bench now lands
+Servable on-demand on :8005. **To reach ~34:** ik_llama requant (deferred) or more RAM
+bandwidth. **Disk: KEPT.** **Status: complete — the 7-workload bench now lands
 (earlier batch-switch run failed to allocate the 5080 buffer mid-switch; a clean single-model restart fixed it,
 confirming it was a VRAM-not-cleared-on-switch artifact, not a model problem).**
 
-_2026-06-27 · deep-research + empirical tuning + ik_llama build + 7/7 clean rerun · keyingd · `2026-06-27-benchmark-research-log.md` §7._
+_2026-06-27 · deep-research + empirical tuning + ik_llama build + 7/7 clean rerun · the test rig ._

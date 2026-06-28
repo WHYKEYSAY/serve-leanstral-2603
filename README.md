@@ -38,6 +38,6 @@ NOT short OpenAI wall-time (it understates decode). See `bench_decode.py`.
 ## Files
 - `REPORT.md` — the detailed benchmark (throughput · config · tuning-research+sources · analysis · failures), if present.
 - `bench_decode.py` — honest decode-tok/s measurement (`/completion` timings).
-- `mctl-entry.json` — the `models.json` snippet for the [mctl](https://github.com/) switcher.
+- `launcher-entry.json` — a ready-to-paste config (name + serving flags) for whatever model server you run.
 
-*Part of a per-model serving-playbook set. Cross-model comparison: see the `_ALL-MODELS-SUMMARY.md` overview.*
+*Part of a per-model serving-playbook set.*

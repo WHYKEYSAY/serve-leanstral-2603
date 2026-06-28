@@ -1,14 +1,26 @@
 # leanstral-2603 (119B-A6B, deepseek2/MLA) — team-urgent (Mohan / Lean 4)
 
-**From unusable to usable: 0.94 → 21.3 tok/s (22.6×)** via `-fit on`. Mistral's Lean-4 theorem-proving MoE.
-The win was entirely **config** — the hardware was never the limit.
+**From unusable to usable: 0.94 → 22.4 tok/s (23.8×)** via `-fit on`. Mistral's Lean-4 theorem-proving MoE.
+The win was entirely **config** — the hardware was never the limit. **Now 7/7 clean.**
 
-## Decode throughput
-| Engine | Config | Decode tok/s | Workloads |
+## Decode throughput (7 workloads, `-fit on`)
+| Workload | decode tok/s |
+|---|---|
+| Math / reasoning | **24.2** |
+| Summarization | 24.2 |
+| JSON / structured | 24.0 |
+| Translation (multilingual) | 24.0 |
+| Chat / dialogue | 23.0 |
+| Code generation | 21.1 |
+| Free-form prose | 16.2 |
+| **Average** | **~22.4** (prefill ~21.7) |
+
+## Engine comparison
+| Engine | Config | Decode tok/s | Status |
 |---|---|---|---|
-| **llama.cpp (mainline b9733)** | `-fit on -fa on` q8-KV | **21.3** (code 20.0 / prose 22.6) | 2/7 (bench_decode) — *full 7-workload pending a GPU window* |
-| llama.cpp (broken first config) | `--n-cpu-moe 40 --tensor-split 46,4` | 0.94 | — |
-| **ik_llama.cpp** | `--fit -mla3 -fmoe -rtr` | **n/a — INCOMPATIBLE** (see Failures) | — |
+| **llama.cpp (mainline b9733)** | `-fit on -fa on` q8-KV | **22.4** (7/7 clean) | ✅ working daily |
+| llama.cpp (broken first config) | `--n-cpu-moe 40 --tensor-split 46,4` | 0.94 | config error |
+| **ik_llama.cpp** | `--fit -mla3 -fmoe -rtr` | **n/a — INCOMPATIBLE** (see Failures) | blocked |
 | vLLM / SGLang | NVFP4 base, TP≥2 | n/a | base model ≠ fine-tune, >48G — Mistral's path, not ours |
 
 ## Serving configuration (the working one)
@@ -55,8 +67,10 @@ faster MLA+MoE CPU kernels) is blocked — see Failures.
 - First config's 0.94 was a config error (`-ngl 99` aborting `-fit on` + blanket `--n-cpu-moe 40`), not hardware.
 
 ## Verdict
-✅ **USABLE for the team at 21.3 tok/s** (mainline `-fit on`, coherent Lean-4, 22.6× the broken baseline). Servable
-on-demand via `mctl switch leanstral` on :8005. **To reach ~34:** ik_llama requant (deferred) or more RAM bandwidth.
-**Disk: KEPT** (team-urgent + one of the two keepers). Remaining §E item: full 7-workload bench (have 2/7).
+✅ **USABLE for the team at 22.4 tok/s, 7/7 clean** (mainline `-fit on`, coherent Lean-4, 23.8× the broken baseline).
+Servable on-demand via `mctl switch leanstral` on :8005. **To reach ~34:** ik_llama requant (deferred) or more RAM
+bandwidth. **Disk: KEPT** (team-urgent + one of the two keepers). **§E: complete — the 7-workload bench now lands
+(earlier batch-switch run failed to allocate the 5080 buffer mid-switch; a clean single-model restart fixed it,
+confirming it was a VRAM-not-cleared-on-switch artifact, not a model problem).**
 
-_2026-06-27 · deep-research + empirical tuning + ik_llama build · keyingd · `2026-06-27-benchmark-research-log.md` §7._
+_2026-06-27 · deep-research + empirical tuning + ik_llama build + 7/7 clean rerun · keyingd · `2026-06-27-benchmark-research-log.md` §7._

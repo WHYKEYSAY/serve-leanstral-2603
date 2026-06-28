@@ -15,7 +15,7 @@
 ```
 
 ## Reference throughput
-0.94 → **21.3 tok/s (22×)** just by switching the broken `--n-cpu-moe 40` to `-fit on`. ~34 reported on a 192 GB-RAM symmetric-2×24 GB rig — the gap is RAM bandwidth, not config.
+0.94 → **22.4 tok/s (24×), 7/7 clean** just by switching the broken `--n-cpu-moe 40` to `-fit on`. ~34 reported on a 192 GB-RAM symmetric-2×24 GB rig — the gap is RAM bandwidth, not config.
 
 ## Failures → fixes
 - `--n-cpu-moe 40` → 0.94 tok/s (over-offloaded).

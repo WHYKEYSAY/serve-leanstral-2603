@@ -1,4 +1,4 @@
-# leanstral-2603 (119B-A6B, deepseek2/MLA) — Lean 4 theorem-proving MoE
+# leanstral-2603 (119B-A6B, deepseek2/MLA) — team-urgent (Mohan / Lean 4)
 
 **From unusable to usable: 0.94 → 22.4 tok/s (23.8×)** via `-fit on`. Mistral's Lean-4 theorem-proving MoE.
 The win was entirely **config** — the hardware was never the limit. **Now 7/7 clean.**
@@ -31,7 +31,7 @@ The win was entirely **config** — the hardware was never the limit. **Now 7/7 
 | Placement | **`-fit on`** auto: all active params (attn/dense/shared-expert/KV) on GPU, routed experts spill to CPU |
 | VRAM | 5090 31.5 GB + 5080 13.9 GB = **45.4 GB on GPU**; ~27 GB cold experts on CPU RAM |
 | KV / ctx / fa | `--cache-type-k/v q8_0` · 8192 · `-fa on` |
-| Port | :8005 |
+| Port | :8005 via `mctl switch leanstral` |
 
 ## Tuning-research (sources + chosen config + why)
 Multi-agent deep-research (95 agents, adversarially verified; raw in `leanstral-deep-research-raw.json`).
@@ -68,9 +68,26 @@ faster MLA+MoE CPU kernels) is blocked — see Failures.
 
 ## Verdict
 ✅ **USABLE for the team at 22.4 tok/s, 7/7 clean** (mainline `-fit on`, coherent Lean-4, 23.8× the broken baseline).
-Servable on-demand on :8005. **To reach ~34:** ik_llama requant (deferred) or more RAM
-bandwidth. **Disk: KEPT.** **Status: complete — the 7-workload bench now lands
+Servable on-demand via `mctl switch leanstral` on :8005. **To reach ~34:** ik_llama requant (deferred) or more RAM
+bandwidth. **Disk: KEPT** (team-urgent + one of the two keepers). **§E: complete — the 7-workload bench now lands
 (earlier batch-switch run failed to allocate the 5080 buffer mid-switch; a clean single-model restart fixed it,
 confirming it was a VRAM-not-cleared-on-switch artifact, not a model problem).**
 
-_2026-06-27 · deep-research + empirical tuning + ik_llama build + 7/7 clean rerun · the test rig ._
+_2026-06-27 · deep-research + empirical tuning + ik_llama build + 7/7 clean rerun · keyingd · `2026-06-27-benchmark-research-log.md` §7._
+
+## Update 2026-06-30 — the quant-to-VRAM lever DOUBLES it: 22.4 → 43.2 tok/s
+| Config | Decode | VRAM/RAM | Note |
+|---|---|---|---|
+| mainline `-fit on` Q4_K_M (72G) | 22.4 | 45G/27G | original |
+| **mainline `-fit on` Q3_K_S (48G)** | **43.2** | **44G/9G** | **~1.9× — RAM offload 27→9G** |
+| ik_llama (any -mla) | ❌ crash | — | `llama-hparams.cpp:1086` rejects deepseek2 GGUF (needs ik_llama-requant) |
+
+**Finding:** Leanstral is only 6.5B-active — shrinking Q4→Q3 (self-quantized via llama-quantize) cut the RAM-resident experts from 27G→9G, nearly eliminating the slow-RAM bottleneck → **doubled decode**. ik_llama is a dead-end (hparams crash, MLA-independent). The lever is QUANT, on mainline llama.cpp. (Q3-from-Q4 is a lossy speed proof; redo from Q8 for a quality keeper.) Next: IQ2 to fit fully in 48G VRAM.
+
+### Quant ladder — the peak is Q3_K_S
+| Quant | Size | VRAM/RAM | Decode | |
+|---|---|---|---|---|
+| Q4_K_M | 72G | 45/27 | 22.4 | original |
+| **Q3_K_S** | 48G | 44/9 | **43.2** | 🏆 PEAK (~1.9×) |
+| Q2_K | 41G | 43/2 | ~37 (declining) | past sweet spot — lossier compute + degenerate output offset the RAM savings |
+**Conclusion:** the optimal is **Q3_K_S = 43.2 tok/s** — shrinking further (Q2) doesn't help once it's mostly VRAM-resident. The quant-to-VRAM lever DOUBLED Leanstral; ik_llama remains a dead-end (deepseek2 hparams crash). For a quality keeper (Lean-4), the Q3_K_S should be re-quantized cleanly from Q8 (not the lossy Q4→Q3 used for this speed proof).

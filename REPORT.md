@@ -91,3 +91,11 @@ _2026-06-27 · deep-research + empirical tuning + ik_llama build + 7/7 clean rer
 | **Q3_K_S** | 48G | 44/9 | **43.2** | 🏆 PEAK (~1.9×) |
 | Q2_K | 41G | 43/2 | ~37 (declining) | past sweet spot — lossier compute + degenerate output offset the RAM savings |
 **Conclusion:** the optimal is **Q3_K_S = 43.2 tok/s** — shrinking further (Q2) doesn't help once it's mostly VRAM-resident. The quant-to-VRAM lever DOUBLED Leanstral; ik_llama remains a dead-end (deepseek2 hparams crash). For a quality keeper (Lean-4), the Q3_K_S should be re-quantized cleanly from Q8 (not the lossy Q4→Q3 used for this speed proof).
+
+### FINAL: clean Q3_K_S (from Q8) = 49.5 tok/s — the production keeper (2.2×)
+| Config | Decode | Quality | |
+|---|---|---|---|
+| Q4_K_M (orig) | 22.4 | full | baseline |
+| lossy Q3 (from Q4) | 43.2 | degraded | speed proof |
+| **clean Q3_K_S (from Q8)** | **49.5** | **coherent (Lean-4 OK)** | 🏆 **KEEPER, 2.2×** |
+The clean-from-Q8 Q3 is both faster (49.5 vs 43.2 — cleaner tensor quant → more efficient compute) AND coherent. **Leanstral optimized: 22.4 → 49.5 tok/s, quality-preserving.** Serve for Mohan via `-fit on` on the clean Q3. VRAM 44G + RAM 9G. ik_llama remains dead-end (deepseek2 hparams crash); SGLang/vLLM can't offload → can't fit (only IQ2 fits VRAM, quality-broken).

@@ -99,3 +99,13 @@ _2026-06-27 · deep-research + empirical tuning + ik_llama build + 7/7 clean rer
 | lossy Q3 (from Q4) | 43.2 | degraded | speed proof |
 | **clean Q3_K_S (from Q8)** | **49.5** | **coherent (Lean-4 OK)** | 🏆 **KEEPER, 2.2×** |
 The clean-from-Q8 Q3 is both faster (49.5 vs 43.2 — cleaner tensor quant → more efficient compute) AND coherent. **Leanstral optimized: 22.4 → 49.5 tok/s, quality-preserving.** Serve for Mohan via `-fit on` on the clean Q3. VRAM 44G + RAM 9G. ik_llama remains dead-end (deepseek2 hparams crash); SGLang/vLLM can't offload → can't fit (only IQ2 fits VRAM, quality-broken).
+
+### FINAL ENGINE VERDICT — all 3 alt-engines fail the deepseek2 GGUF; llama.cpp is the only path
+| Engine | Leanstral GGUF result |
+|---|---|
+| **mainline llama.cpp** | ✅ **49.5 tok/s** (clean Q3, coherent) — the ONLY working engine (has RAM-offload) |
+| ik_llama.cpp | ❌ crash `llama-hparams.cpp:1086` (deepseek2 rejected, MLA-independent) |
+| **SGLang** | ❌ `ValueError: GGUF model with architecture deepseek2 is not supported yet` |
+| vLLM | ❌ can't load GGUF at all + won't bind headless on this rig |
+
+**Definitive:** mainline llama.cpp's CPU-RAM expert-offload is the ONLY viable Leanstral path on a 48GB rig — the alt-engines have no offload AND reject the deepseek2 GGUF arch. **49.5 tok/s (2.2× the original 22.4) is the ceiling**, via the quant-to-VRAM lever (Q4→clean Q3 from Q8, coherent). Dig closed.
